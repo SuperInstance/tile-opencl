@@ -458,7 +458,7 @@ int tile_search(tile_context_t *tc,
     uint32_t num_groups = (uint32_t)(gws / lws);
     size_t group_results_size = (size_t)num_groups * TILE_MAX_RESULTS * sizeof(tile_search_result_t);
 
-    cl_mem d_group_results = clCreateBuffer(tc->ctx, CL_MEM_WRITE_ONLY,
+    cl_mem d_group_results = clCreateBuffer(tc->ctx, CL_MEM_READ_WRITE,
                                              group_results_size, NULL, &err);
     if (err != CL_SUCCESS) {
         clReleaseMemObject(d_query);
@@ -503,7 +503,7 @@ int tile_search(tile_context_t *tc,
     /* Read results */
     uint8_t *raw = malloc(TILE_MAX_RESULTS * sizeof(tile_search_result_t));
     clEnqueueReadBuffer(tc->queue, d_final, CL_TRUE, 0,
-                        TILE_MAX_RESULTS * 32, raw, 0, NULL, NULL);
+                        TILE_MAX_RESULTS * sizeof(tile_search_result_t), raw, 0, NULL, NULL);
 
     /* Parse results (struct layout: {uint32_t index, float score} = 8 bytes) */
     *n_results = 0;
