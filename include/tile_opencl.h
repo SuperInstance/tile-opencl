@@ -103,6 +103,13 @@ int tile_evolve(tile_context_t *ctx,
                 float lr, float clamp_min, float clamp_max);
 
 /**
+ * Read back scores buffer from device.
+ * @param scores  Output buffer [count]
+ * @param count   Number of score entries to read
+ */
+int tile_read_scores(tile_context_t *ctx, float *scores, uint32_t count);
+
+/**
  * Run benchmark: compare OpenCL vs CPU for given vector count.
  * Prints results to stdout.
  */

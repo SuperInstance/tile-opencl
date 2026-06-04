@@ -167,8 +167,7 @@ static void test_evolve(tile_context_t *ctx) {
 
     /* Read back scores to verify they changed */
     float *scores = malloc(count * sizeof(float));
-    clEnqueueReadBuffer(ctx->queue, ctx->scores, CL_TRUE, 0,
-                        count * sizeof(float), scores, 0, NULL, NULL);
+    tile_read_scores(ctx, scores, count);
 
     /* Scores at evolved indices should be != 0.5 */
     int changed = 0;

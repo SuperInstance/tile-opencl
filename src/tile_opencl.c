@@ -2,6 +2,8 @@
  * tile_opencl.c — Host code: device detection, buffer mgmt, kernel launch
  * OpenCL 1.2 compatible
  */
+#define _POSIX_C_SOURCE 199309L
+#define min(a,b) ((a)<(b)?(a):(b))
 
 #define CL_TARGET_OPENCL_VERSION 120
 #include <CL/cl.h>
@@ -493,7 +495,7 @@ int tile_search(tile_context_t *tc,
     clSetKernelArg(tc->k_search_reduce, 1, sizeof(uint32_t), &num_groups);
     clSetKernelArg(tc->k_search_reduce, 2, sizeof(cl_mem), &d_final);
 
-    size_t reduce_lws = min(lws, (size_t)TILE_MAX_RESULTS);
+    size_t reduce_lws = (lws < (size_t)TILE_MAX_RESULTS) ? lws : (size_t)TILE_MAX_RESULTS;
     size_t reduce_gws = reduce_lws;
     err = clEnqueueNDRangeKernel(tc->queue, tc->k_search_reduce, 1, NULL,
                                   &reduce_gws, &reduce_lws, 0, NULL, NULL);
@@ -628,6 +630,13 @@ static double get_time_ms(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_sec * 1000.0 + ts.tv_nsec / 1e6;
+}
+
+int tile_read_scores(tile_context_t *tc, float *scores, uint32_t count) {
+    if (!tc || !scores) return -1;
+    cl_int err = clEnqueueReadBuffer(tc->queue, tc->scores, CL_TRUE, 0,
+                                     count * sizeof(float), scores, 0, NULL, NULL);
+    return (err == CL_SUCCESS) ? 0 : -1;
 }
 
 int tile_benchmark(tile_context_t *tc, uint32_t count, uint32_t dim) {
